@@ -1,0 +1,83 @@
+-- Найти информацию о всех контрактах,
+--связанных с сотрудниками департамента «Logistic». 
+--Вывести: contract_id, employee_name 
+
+SELECT con.id, em.name FROM Executor Ex
+    JOIN Employees Em ON Ex.contract_id = Em.id
+    JOIN Department Dep ON Dep.id = Em.department_id
+    JOIN Contract Con ON Con.id = Ex.contract_id
+WHERE dep.name = 'Logistic'	
+
+
+
+-- Найти среднюю стоимость контрактов, 
+-- заключенных сотрудников Ivan Ivanov. 
+-- Вывести: среднее значение amount
+
+SELECT ROUND(AVG(Con.amount),2) FROM Executor Ex
+    JOIN Employees Em ON Ex.contract_id = Em.id
+    JOIN Contract Con ON Con.id = Ex.contract_id
+	WHERE Em.name = 'Ivan Ivanov'	
+	
+	
+-- Найти самую часто встречающуюся локации
+-- среди всех заказчиков. Вывести: location, count
+SELECT Cs.location, COUNT(Cs.location) FROM Executor Ex
+    JOIN Contract Con ON Con.id = Ex.contract_id
+    JOIN Customer Cs ON Cs.id = Con.customer_id
+	 GROUP BY Cs.location
+HAVING COUNT(Cs.location) = (
+    SELECT COUNT(Cs.location) FROM Executor Ex
+      JOIN Contract Con ON Con.id = Ex.contract_id
+      JOIN Customer Cs ON Cs.id = Con.customer_id
+	  GROUP BY Cs.location
+	  ORDER BY COUNT(Cs.location) DESC
+	  LIMIT 1
+)
+
+
+
+-- Найти контракты одинаковой стоимости. Вывести count, amount
+
+SELECT Con.amount, COUNT(Con.amount) FROM Executor Ex
+    JOIN Employees Em ON Ex.contract_id = Em.id
+	JOIN Contract Con ON Con.id = Ex.contract_id
+	GROUP BY Con.amount
+	ORDER BY 1 DESC
+	
+	
+-- Найти заказчика с наименьшей средней стоимостью контрактов. 
+-- Вывести customer_name, среднее значение amount
+SELECT Cs.customer_name, ROUND(AVG(Con.amount),2) FROM Executor Ex
+    JOIN Employees Em ON Ex.contract_id = Em.id
+	JOIN Contract Con ON Con.id = Ex.contract_id
+	JOIN Customer Cs ON Cs.id = Con.customer_id
+	GROUP BY Cs.customer_name
+HAVING AVG(Con.amount) = (
+   SELECT AVG(Con.amount) FROM Executor Ex
+      JOIN Employees Em ON Ex.contract_id = Em.id
+	  JOIN Contract Con ON Con.id = Ex.contract_id
+	  JOIN Customer Cs ON Cs.id = Con.customer_id
+	GROUP BY Cs.customer_name
+	ORDER BY AVG(Con.amount) ASC
+	LIMIT 1
+	)
+	
+	
+-- Найти отдел, заключивший контрактов на наибольшую сумму. 
+-- Вывести: department_name, sum
+SELECT Dep.name, SUM(Con.amount) FROM Executor Ex
+     JOIN Employees Em ON Ex.contract_id = Em.id
+	 JOIN Department Dep ON Dep.id = Em.department_id
+     JOIN Contract Con ON Con.id = Ex.contract_id
+	 GROUP BY Dep.name
+HAVING SUM(Con.amount) = (
+   SELECT SUM(Con.amount) FROM Executor Ex
+      JOIN Employees Em ON Ex.contract_id = Em.id
+	  JOIN Department Dep ON Dep.id = Em.department_id
+      JOIN Contract Con ON Con.id = Ex.contract_id
+	GROUP BY Dep.name
+    ORDER BY SUM(Con.amount)
+    DESC
+	LIMIT 1
+)
